@@ -1,0 +1,833 @@
+---
+title: "Telecom Churn Analysis"
+author:
+  - Adeline
+  - Annick
+format:
+  revealjs:
+    slide-number: true
+    chalkboard:
+      buttons: false
+    preview-links: auto
+    logo: images/xcover.png
+    code-fold: false
+    code-tools: true
+jupyter: python3
+execute:
+  eval: true
+  echo: true
+  warning: false
+  message: true
+  background-image: url("C:/Users/ADELINE PC/Downloads/Telecom Log.png")
+  background-size: cover
+  class: center, middle, inverse
+  Date: 30/6/2025
+---
+
+This notebook is focused on the exploratory and descriptive analysis of the cleaned version of the Telecom Churn Rate Dataset.To begin with, we import all the necessary Python libraries required for data handling, analysis, and processing.
+
+- `pandas` for data manipulation
+- `numpy` for numerical operations
+- `os` for handling directory paths
+
+
+```{python}
+# import libraries
+import pandas as pd
+import numpy as np
+import os
+import plotly.express as px
+```
+---
+## Define and Create Paths
+
+We define the folder structure to organize our project,This includes:
+
+- data/raw — for raw data files  
+- data/processed — for cleaned and transformed datasets  
+- results — for any output files such as plots or models  
+- docs — for documentation or rendered outputs (e.g., HTML, PDF)
+
+We also ensure these directories,created if they don't already exist.
+
+```{python}
+#| echo: false
+# get working directory 
+Current_dir = os.getcwd()
+# on one directory up to the root directory 
+project_root_dir = os.path.dirname(Current_dir)
+# define paths to the data folders
+data_dir = os.path.join(project_root_dir,'data')
+raw_dir = os.path.join(data_dir,'raw')
+processed_dir = os.path.join(data_dir,'processed')
+# define paths to result folder 
+results_dir = os.path.join(project_root_dir,'results')
+# define paths to docs folder 
+docs_dir = os.path.join(project_root_dir,'docs')
+
+# create directories if they do not eFileExists 
+os.makedirs(raw_dir, exist_ok = True)
+os.makedirs(processed_dir, exist_ok = True)
+os.makedirs(results_dir, exist_ok = True)
+os.makedirs(docs_dir, exist_ok = True)
+```
+
+## Loading the Dataset 
+
+Now we load the raw dataset (Telecom Churn Rate Dataset) from the raw directory using pandas.read_excel().
+
+Missing values are identified using the placeholder `?`, which we convert to `NaN`.
+
+```{python} 
+#| echo: false
+#| output: true
+#| label: telecom_churn
+#| tbl-cap: Telecom Churn Rate Dataset
+
+telecom_filename = os.path.join(processed_dir,'cleaned.xlsx')
+telecom_df = pd.read_excel(telecom_filename)
+telecom_df.head(10)
+```
+---
+
+We use `.shape` to see the number of rows and columns in the dataset.
+This helps us understand the scale of the data.
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df.shape
+```
+
+## Dataset Info
+
+The `.info()` method gives a concise summary of the dataset, including:
+
+- Column names and types  
+- Number of non-null entries  
+- Memory usage
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df.info()
+```
+```{python}
+#| label: tbl-dataset-overview
+#| tbl-cap: Overview of dataset columns, their data types, and the count of missing values in each column.
+summary_df = pd.DataFrame({
+    'Column': telecom_df.columns,
+    'Data Type':telecom_df.dtypes.values,
+    'Missing Values': telecom_df.isnull().sum().values
+})
+summary_df
+```
+---
+## Summary statistics
+Numerical variables
+
+```{python}
+#| label: tbl-summary-numerical
+#| tbl-cap: Summary statistics for numerical variables in the dataset, including count, mean, standard deviation, min, and quartile values.
+telecom_df.describe()
+```
+
+## Categorical Variables
+
+```{python}
+#| label: tbl-summary-object
+#| tbl-cap: Summary statistics for categorical variables in the dataset, including count, mean, standard deviation, min, and quartile values.
+telecom_df.describe(include='object')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['gender'].value_counts()
+```
+---
+
+```{python}
+#| label: tbl-gender-distribution
+#| tbl-cap: Proportion of each category in the `gender` variable.
+telecom_df['gender'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['Partner'].value_counts()
+```
+
+```{python}
+#| label: tbl-partner-distribution
+#| tbl-cap: Proportion of each category in the `partner` variable.
+telecom_df['Partner'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+---
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['Dependents'].value_counts()
+```
+
+```{python}
+#| label: tbl-Dependents-distribution
+#| tbl-cap: Proportion of each category in the `Dependents` variable.
+telecom_df['Dependents'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['PhoneService'].value_counts()
+```
+
+```{python}
+#| label: tbl-Phoneservive-distribution
+#| tbl-cap: Proportion of each category in the `PhoneService` variable.
+telecom_df['PhoneService'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['MultipleLines'].value_counts()
+```
+
+```{python}
+#| label: tbl-MultipleLines-distribution
+#| tbl-cap: Proportion of each category in the `MultipleLines` variable.
+telecom_df['MultipleLines'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['InternetService'].value_counts()
+```
+---
+
+```{python}
+#| label: tbl-InternetServices-distribution
+#| tbl-cap: Proportion of each category in the `InternetServices` variable.
+telecom_df['InternetService'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['OnlineSecurity'].value_counts()
+```
+
+```{python}
+#| label: tbl-OnlineSecurity-distribution
+#| tbl-cap: Proportion of each category in the `OnlineSecurity` variable.
+telecom_df['OnlineSecurity'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['OnlineBackup'].value_counts()
+```
+
+```{python}
+#| label: tbl-OnlineBackup-distribution
+#| tbl-cap: Proportion of each category in the `OnlineBackup` variable.
+telecom_df['OnlineBackup'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['DeviceProtection'].value_counts()
+```
+---
+
+```{python}
+#| label: tbl-DeviceProtection-distribution
+#| tbl-cap: Proportion of each category in the `DeviceProtection` variable.
+telecom_df['DeviceProtection'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['TechSupport'].value_counts()
+```
+
+```{python}
+#| label: tbl-TechSupport-distribution
+#| tbl-cap: Proportion of each category in the `TechSupport` variable.
+telecom_df['TechSupport'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['StreamingTV'].value_counts()
+```
+
+```{python}
+#| label: tbl-StreamingTV-distribution
+#| tbl-cap: Proportion of each category in the `StreamingTV` variable.
+telecom_df['StreamingTV'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['Contract'].value_counts()
+```
+---
+
+```{python}
+#| label: tbl-Contract-distribution
+#| tbl-cap: Proportion of each category in the `Contract` variable.
+telecom_df['Contract'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['PaperlessBilling'].value_counts()
+```
+
+```{python}
+#| label: tbl-PaperlessBilling-distribution
+#| tbl-cap: Proportion of each category in the `PaperlessBilling` variable.
+telecom_df['PaperlessBilling'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['PaymentMethod'].value_counts()
+```
+
+```{python}
+#| label: tbl-PaymentMethod-distribution
+#| tbl-cap: Proportion of each category in the `PaymentMethod` variable.
+telecom_df['PaymentMethod'].value_counts(normalize=True).rename_axis('unique values').reset_index(name='proportion')
+```
+---
+
+## Understanding the Churn Column
+
+In our dataset, there is a `Churn` column that indicates whether a customer has left the telecom service or not:
+
+- **Yes** – The customer has **churned**, meaning they have **canceled** their service or switched to another provider.
+- **No** – The customer is **still active**, meaning they have * the telecom company.
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df['Churn'].value_counts()
+```
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df_churn= telecom_df['Churn'].value_counts(normalize=True).rename_axis('not churned').reset_index(name='churned')
+telecom_df_churn
+```
+
+## Churn rate
+ **What is Churn Rate?**
+
+In the telecom industry, **Churn Rate** refers to the percentage of customers who stop using the company's services during a specific period of time.
+
+It is a key performance indicator (KPI) used to measure customer retention and loportant?
+
+High churn rates can signal:
+
+- Poor customer satisfaction
+- High competition
+- Issues with service quality or pricing
+
+Reducing churn is crucial for maintaining revenue and customer base.
+---
+
+```{python}
+#| echo: false
+#| output: true
+telecom_df_churn= telecom_df['Churn'].value_counts(normalize=True).rename_axis('not churned').reset_index(name='churned')
+telecom_df_churn
+```
+
+```{python}
+#| echo: false
+#| output: true
+import plotly.express as px
+import os
+
+# Create Pie Chart
+fig = px.pie(
+    telecom_df_churn,
+    names=['not churned', 'churned'],
+    values='churned',
+    title='Churn Rate',
+    color_discrete_sequence=['yellow', 'orange']
+)
+
+# Adjust layout and reduce size
+fig.update_layout(
+    template="presentation",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    width=400,   # reduced width
+    height=400   # reduced height
+)
+
+# Save outputs (ensure the directory exists)
+results_dir = "results"
+os.makedirs(results_dir, exist_ok=True)
+
+fig.write_image(os.path.join(results_dir, 'Churn_Rate_pie_chart.jpg'))
+fig.write_image(os.path.join(results_dir, 'Churn_Rate_pie_chart.png'))
+fig.write_html(os.path.join(results_dir, 'Churn_Rate_pie_chart.html'))
+# Show the figure
+fig.show()
+```
+---
+
+After analyzing the dataset, we observe the following churn rate:
+
+- **26.5%** of customers have churned (**Churn = Yes**)
+- **73.5%** of customers have remained loyal (**Churn = No**)
+
+
+- Out of every 100 customers, about **27 leave the telecom service**, while **73 continue** using it.
+- A churn rate of **26.5%** is relatively **high** in the telecom industry and could be a sign of underlying issues such as:
+  - Poor customer service
+  - Uncompetitive pricing
+  - Limited network coverage
+  - Inadequate value propositions compared to competitors
+
+
+Understanding churn rate is essential because:
+
+- **Customer acquisition costs** are high. It's often more expensive to gain a new customer than to retain an existing one.
+- A high churn rate can lead to **revenue loss** and affect the company’s **growth and sustainability**.
+- Identifying the factors that lead to churn enables the company to take **targeted actions** to reduce it.
+
+This insight sets the foundation for deeper analysis, such as:
+- Segmenting churned users
+- Identifying top predictors of churn
+- Designing customer retention strategies
+---
+
+## Gender Distribution
+
+```{python}
+#| echo: false
+#| output: false
+telecom_df_gender= telecom_df.groupby(['gender']).size().reset_index(name='total')
+telecom_df_gender
+```
+
+```{python}
+#| echo: false
+#| output: true
+import plotly.express as px
+import plotly.io as pio
+import os
+import time
+
+fig = px.bar(
+    telecom_df_gender,
+    x='gender',
+    y='total',
+    color='gender',
+    title='Gender Distribution',
+    text='total',
+    color_discrete_sequence=['yellow', 'orange']
+)
+
+fig.update_traces(
+    texttemplate='%{text:.0f}',
+    textposition='inside',
+    insidetextanchor='middle',
+    textfont=dict(size=14, color='black'),
+    cliponaxis=False
+)
+
+fig.update_layout(
+    template="presentation",
+    xaxis_title='Gender',
+    yaxis_title='Number of Customers',
+    showlegend=False,
+    font=dict(
+        family="Arial",
+        size=14,
+        color="black"
+    ),
+    title_font=dict(
+        family="Arial",
+        size=20,
+        color="black"
+    ),
+    margin=dict(l=80, r=50, t=80, b=100),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)"
+)
+
+# Ensure directory exists
+results_dir = "results"
+os.makedirs(results_dir, exist_ok=True)
+fig.write_image(os.path.join(results_dir, 'Gender_Distribution_bar_chart.jpg'), engine='kaleido')
+time.sleep(1)
+fig.write_image(os.path.join(results_dir, 'Gender_Distribution_bar_chart.png'), engine='kaleido')
+fig.write_html(os.path.join(results_dir, 'Gender_Distribution_bar_chart.html'))
+# Show the figure
+fig.show()
+```
+
+The dataset includes customer information classified by gender. Here's the breakdown:
+
+- **Female**: 3,488 customers
+- **Male**: 3,555 customers
+
+- The gender distribution is nearly balanced, with **51.9% male** and **48.1% female**.
+- Since the difference is small, **gender is unlikely to be a strong biasing factor** in this dataset.
+---
+
+## Payment Method
+
+The dataset includes information about the preferred **payment methods** used by customers. The distribution is as follows:
+
+- **Electronic Check**: 34%
+- **Mailed Check**: 23%
+- **Bank Transfer (Automatic)**: 22%
+- **Credit Card (Automatic)**: 22%
+
+```{python}
+telecom_df_payment_method = telecom_df['PaymentMethod'].value_counts(normalize=True).round(2).reset_index(name='payment_method_rate')
+telecom_df_payment_method
+```
+
+```{python}
+#| echo: false
+#| output: true
+import plotly.express as px
+import plotly.io as pio
+import os
+import time
+
+telecom_df_payment_method['payment_method_rate'] *= 100
+
+fig = px.bar(
+    telecom_df_payment_method,
+    x='PaymentMethod',
+    y='payment_method_rate',
+    color='PaymentMethod',
+    title='Payment Method Rate (%)',
+    text='payment_method_rate',
+    color_discrete_sequence=['yellow', 'orange', 'red', 'violet']
+)
+
+fig.update_traces(
+    texttemplate='%{text:.2f}%',  
+    textposition='inside',
+    insidetextanchor='middle',
+    textfont=dict(size=14, color='black'),
+    cliponaxis=False
+)
+
+fig.update_layout(
+    template="presentation",
+    xaxis_title='Payment Method',
+    yaxis_title='Rate (%)',
+    showlegend=False,
+    font=dict(
+        family="Arial",
+        size=14,
+        color="black"
+    ),
+    title_font=dict(
+        family="Arial",
+        size=20,
+        color="black"
+    ),
+    margin=dict(l=80, r=40, t=80, b=140),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)"
+)
+
+
+fig.write_image(os.path.join(results_dir, 'Payment_Method_Rate_bar_chart.jpg'), engine='kaleido')
+time.sleep(1)
+fig.write_image(os.path.join(results_dir, 'Payment_Method_Rate_bar_chart.png'), engine='kaleido')
+fig.write_html(os.path.join(results_dir, 'Payment_Method_Rate_bar_chart.html'))
+fig.show()
+```
+
+
+- **Electronic Check** is the most common payment method, used by over one-third of the customers.
+- Automatic payment methods (bank transfer and credit card) together account for **44%**, indicating that a significant portion of customers prefer convenience and automation.
+- The presence of **manual methods** like mailed checks (23%) suggests that some customers may still prefer traditional payment options.
+
+Understanding the distribution of payment methods is important for:
+- **Customer segmentation**
+- Identifying churn risks (e.g., manual payments may be associated with higher churn)
+- Designing targeted financial services or offers
+---
+
+## Paperless Billing
+The dataset tracks whether customers opted for **paperless billing** or not. The distribution is as follows:
+
+- **Yes** (Paperless Billing): 59%
+- **No** (Paper Billing): 41%
+
+```{python}
+telecom_df_billing= telecom_df['PaperlessBilling'].value_counts(normalize=True).reset_index(name='paperless_rate').round(2)
+telecom_df_billing
+```
+
+```{python}
+#| echo: false
+#| output: true
+import plotly.express as px
+import os
+
+# Create Pie Chart
+fig = px.pie(
+    telecom_df_billing,
+    names='PaperlessBilling',
+    values='paperless_rate',
+    title='Paperless Payment Rate',
+    color_discrete_sequence=['yellow', 'orange']
+)
+
+# Reduce pie chart size using layout
+fig.update_layout(
+    template="presentation",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    width=400,   
+    height=400   
+)
+
+# Save outputs
+results_dir = "results"
+os.makedirs(results_dir, exist_ok=True)
+
+fig.write_image(os.path.join(results_dir, 'paperless_rate_pie_chart.jpg'))
+fig.write_image(os.path.join(results_dir, 'paperless_rate_pie_chart.png'))
+fig.write_html(os.path.join(results_dir, 'paperless_rate_pie_chart.html'))
+fig.show()
+```
+
+- A **majority of customers (59%)** prefer receiving their bills electronically, which suggests a strong adoption of digital billing methods.
+- However, **41% still receive paper bills**, indicating that a significant portion of customers may:
+  - Be less tech-savvy
+  - Prefer traditional methods
+  - Have limited access to digital platforms
+
+Understanding billing preferences can help the company:
+- Promote environmentally friendly practices
+- Reduce mailing costs
+---
+
+## Number of Contracts 
+Customers in the dataset are categorized based on the type of contract they hold. Here's the breakdown:
+
+- **Month-to-Month**: 3,875 customers
+- **One Year**: 1,473 customers
+- **Two Year**: 1,695 customers
+
+```{python}
+telecom_df_contract = telecom_df.groupby('Contract').size().reset_index(name='Number_of_contract')
+telecom_df_contract['Number_of_contract'] = telecom_df_contract['Number_of_contract'].round(2)
+telecom_df_contract
+```
+
+```{python}
+#| echo: false
+#| output: true
+fig = px.bar(
+    telecom_df_contract,
+    x='Contract',
+    y='Number_of_contract',
+    color='Contract',  
+    title='Number of Contract',
+    text='Number_of_contract',
+    color_discrete_sequence=['yellow', 'orange', 'red', 'violet']
+)
+
+fig.update_traces(
+    texttemplate='%{text:.0f}',  
+    textposition='inside',
+    insidetextanchor='middle'
+)
+
+fig.update_layout(
+    template="presentation",
+    xaxis_title='Contract Type',
+    yaxis_title='Number',
+    showlegend=False,
+    font=dict(
+        family="Arial",
+        size=14,
+        color="black"
+    ),
+    title_font=dict(
+        family="Arial",
+        size=20
+    ),
+    margin=dict(l=80, r=50, t=80, b=100),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)"
+)
+
+fig.write_image(os.path.join(results_dir, 'Contract_Number_bar_chart.jpg'))
+fig.write_image(os.path.join(results_dir, 'Contract_Number_bar_chart.png'))
+fig.write_html(os.path.join(results_dir, 'Contract_Number_bar_chart.html'))
+fig.show()
+```
+
+- The majority of customers (**~57%**) are on **month-to-month contracts**, which are typically more flexible and easier to cancel.
+- Long-term contracts (one-year and two-year combined) account for **~43%** of the customer base.
+- Customers on month-to-month contracts may be **more likely to churn**, as they face fewer barriers to switching providers.
+- In contrast, those with longer contracts may demonstrate **higher retention** due to commitment incentives or penalties for early termination.
+---
+## Statistical test
+In this analysis, we examined whether MonthlyCharges vary significantly among customers with different contract types. The three categories of contracts analyzed were **Month-to-month**, **One year**, and **Two year**. Understanding how monthly charges differ across these groups helps uncover potential pricing strategies and customer behavior patterns associated with each contract type.
+
+Results Interpretation
+
+| p-value   | Significant? | Conclusion                                                                 |
+|-----------|--------------|----------------------------------------------------------------------------|
+| < 0.05    | Yes           | **Accept H₀** – Significant difference in MonthlyCharges across contract types |
+| ≥ 0.05    | No            | **Fail to Reject H₀** – No significant difference in MonthlyCharges across contract types |
+
+
+```{python}
+#| echo: false
+#| output: true
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+# Convert 'Churn' to binary
+telecom_df['Churn'] = telecom_df['Churn'].map({'yes': 1, 'no': 0})
+
+# Set seaborn style
+sns.set(style="whitegrid")
+
+# Create a smaller 2x2 grid of plots
+fig, axes = plt.subplots(2, 2, figsize=(10, 8)) 
+fig.suptitle("Churn Rate Statistical Test Visuals", fontsize=16, fontweight='bold')
+
+# 1. Churn Distribution
+sns.countplot(data=telecom_df, x='Churn', ax=axes[0, 0], palette='Set2')
+axes[0, 0].set_title("Churn Distribution", fontsize=12)
+axes[0, 0].set_xticks([0, 1])
+axes[0, 0].set_xticklabels(['No', 'Yes'])
+axes[0, 0].set_ylabel("Number of Customers")
+
+# 2. Churn by Contract Type
+sns.countplot(data=telecom_df, x='Contract', hue='Churn', ax=axes[0, 1], palette='Set1')
+axes[0, 1].set_title("Churn by Contract Type", fontsize=12)
+axes[0, 1].set_ylabel("Number of Customers")
+axes[0, 1].legend(title='Churn', labels=['No', 'Yes'])
+
+# 3. Monthly Charges vs Churn
+sns.boxplot(data=telecom_df, x='Churn', y='MonthlyCharges', ax=axes[1, 0], palette='coolwarm')
+axes[1, 0].set_title("Monthly Charges vs Churn", fontsize=12)
+axes[1, 0].set_xticks([0, 1])
+axes[1, 0].set_xticklabels(['No', 'Yes'])
+axes[1, 0].set_ylabel("Monthly Charges")
+
+# 4. Internet Service Type vs Churn
+sns.countplot(data=telecom_df, x='InternetService', hue='Churn', ax=axes[1, 1], palette='muted')
+axes[1, 1].set_title("Churn by Internet Service Type", fontsize=12)
+axes[1, 1].set_ylabel("Number of Customers")
+axes[1, 1].legend(title='Churn', labels=['No', 'Yes'])
+
+# Tighter layout
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.show()
+
+fig.savefig(os.path.join(results_dir, 'statistical_test_images.jpg'))
+fig.savefig(os.path.join(results_dir, 'statistical_test_images.png'))
+```
+
+```{python}
+#| echo: false
+#| output: true
+from scipy import stats
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+import pandas as pd
+
+# 1. Clean the 'Contract' column (just in case)
+telecom_df['Contract'] = telecom_df['Contract'].str.strip().str.lower()
+
+# 2. Define your groups using correct lowercase values
+month_to_month = telecom_df[telecom_df['Contract'] == 'month-to-month']['MonthlyCharges'].dropna()
+one_year = telecom_df[telecom_df['Contract'] == 'one year']['MonthlyCharges'].dropna()
+two_year = telecom_df[telecom_df['Contract'] == 'two year']['MonthlyCharges'].dropna()
+
+# 3. Check lengths to avoid Shapiro error
+def safe_shapiro(data, label):
+    if len(data) >= 3:
+        p = stats.shapiro(data).pvalue
+        print(f"{label}: p = {p:.4f}")
+    else:
+        print(f"{label}: Not enough data for Shapiro-Wilk test (n={len(data)})")
+
+print("Shapiro-Wilk Normality Test p-values:")
+safe_shapiro(month_to_month, "Month-to-month")
+safe_shapiro(one_year, "One year")
+safe_shapiro(two_year, "Two year")
+
+# 4. Levene’s Test for equal variances
+levene_p = stats.levene(month_to_month, one_year, two_year).pvalue
+print(f"\nLevene’s Test p-value: {levene_p:.4f}")
+
+# 5. Choose ANOVA type
+if levene_p > 0.05:
+    # Equal variances: classic ANOVA
+    stat, p = stats.f_oneway(month_to_month, one_year, two_year)
+    print("\nUsing One-Way ANOVA (equal variances assumed)")
+else:
+    # Unequal variances: use Welch’s ANOVA with statsmodels
+    print("\nUsing Welch’s ANOVA (unequal variances)")
+    df_anova = telecom_df[['MonthlyCharges', 'Contract']].dropna()
+    model = ols('MonthlyCharges ~ Contract', data=df_anova).fit()
+    welch_result = sm.stats.anova_lm(model, typ=2, robust='hc3')  # robust Welch ANOVA
+    print(welch_result)
+    stat = welch_result['F'].iloc[0]
+    p = welch_result['PR(>F)'].iloc[0]
+
+# 6. Display results
+print(f"ANOVA F-statistic: {stat:.4f}")
+print(f"ANOVA p-value: {p:.4f}")
+```
+
+```{python}
+#| echo: false
+#| output: true
+# Test Conclusion
+alpha = 0.05
+p = 0
+if p > alpha:
+    print("Fail to reject H₀: No significant difference in MonthlyCharges across contract types.")
+else:
+    print("Accept H₀: Significant difference in MonthlyCharges across contract types.")
+```
+---
+
+## Conclusion
+The statistical analysis confirms that contract type significantly influences monthly charges.
+Customers with Month-to-month contracts pay more on average, which may be due to:
+
+-Lack of discounts available in long-term plans,
+-Flexibility priced at a premium,
+
+## Recommendation:
+Telecom providers might use this insight to design targeted retention strategies—such as offering discounts or bundling services—to encourage month-to-month customers to switch to long-term contracts, potentially improving customer lifetime value.
+---
